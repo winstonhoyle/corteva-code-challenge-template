@@ -5,3 +5,7 @@ venv/
 .vim/
 .vscode/
 .mypy_cache/
+*.ipynb
+.venv/
+*.sh
+*.db
