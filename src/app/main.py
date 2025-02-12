@@ -2,7 +2,7 @@ import collections
 from datetime import datetime
 import logging
 import os
-from typing import Optional, List, Annotated
+from typing import Optional
 
 from fastapi import Depends, FastAPI, UploadFile
 from fastapi_pagination import add_pagination, Params, Page, paginate
