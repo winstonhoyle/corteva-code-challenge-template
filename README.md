@@ -7,7 +7,7 @@ Winston Hoyle
 ~2 hours
 
 #### Comments
-Input works but only when `bulk_upload` is disabled. If I worked on this long I would fix bulk upload with new files. I would also implement storing results and unit tests. I only give myself ~2 hours per challenge. I have other code that is _production_, including an account I post daily maps:
+Input works but only when `bulk_upload` is disabled. If I worked on this longer I would fix bulk upload with new files. I would also implement storing results and unit tests. I only give myself ~2 hours per challenge. I have other code that is _production_, including an account I post daily maps:
 * [VineMapper](https://github.com/winstonhoyle/VineMapper)
 * [Mapping-WMATA-Fares](https://github.com/winstonhoyle/Mapping-WMATA-Fares) [http://wmatafares.com/](http://wmatafares.com/)
 * [Sample-CRUD-app](https://github.com/winstonhoyle/Sample-CRUD-app)
@@ -40,7 +40,7 @@ uvicorn src.app.main:app --reload
 - [x] [Average maximum temperature (in degrees Celsius)](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/crud.py#L229)
 - [x] [Average minimum temperature (in degrees Celsius)](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/crud.py#L232)
 - [x] [Total accumulated precipitation (in centimeters)](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/crud.py#L238)
-- [x] [Ignore missing data when calculating these statistics.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/crud.py#L229)
+- [x] [Ignore missing data when calculating these statistics.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L184)
 - [ ] Design a new data model to store the results.
 - [x] [Use NULL for statistics that cannot be calculated.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L202)
 - [x] [Your answer should include the new model definition as well as the code used to calculate the new values and store them in the database.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/schemas.py#L68)
