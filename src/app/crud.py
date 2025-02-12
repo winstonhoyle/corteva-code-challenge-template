@@ -41,6 +41,8 @@ def determine_func(calculation: schemas.Calculations):
         sql_func = func.max
     if calculation == schemas.Calculations.MIN:
         sql_func = func.min
+    if calculation == schemas.Calculations.SUM:
+        sql_func = func.sum
     return sql_func
 
 
@@ -181,7 +183,10 @@ def calculate_all_attributes_by_year(
     stat_avg = calculate_attribute_weather_by_year(
         db=db, calculation=schemas.Calculations.AVG, attribute=attribute, year=year
     )
-    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max)
+    stat_sum = calculate_attribute_weather_by_year(
+        db=db, calculation=schemas.Calculations.SUM, attribute=attribute, year=year
+    )
+    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max, sum=stat_sum)
 
 
 def calculate_all_attributes_by_year_and_id(
@@ -208,7 +213,14 @@ def calculate_all_attributes_by_year_and_id(
         station_id=station_id,
         year=year,
     )
-    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max)
+    stat_sum = calculate_attribute_weather_by_year_and_id(
+        db=db,
+        calculation=schemas.Calculations.SUM,
+        attribute=attribute,
+        station_id=station_id,
+        year=year,
+    )
+    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max, sum=stat_sum)
 
 
 def calculate_all_attributes_id(
@@ -223,4 +235,7 @@ def calculate_all_attributes_id(
     stat_avg = calculate_attribute_weather_by_id(
         db=db, calculation=schemas.Calculations.AVG, attribute=attribute, station_id=station_id
     )
-    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max)
+    stat_sum = calculate_attribute_weather_by_id(
+        db=db, calculation=schemas.Calculations.SUM, attribute=attribute, station_id=station_id
+    )
+    return schemas.WeatherStat(avg=stat_avg, min=stat_min, max=stat_max, sum=stat_sum)

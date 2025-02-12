@@ -24,6 +24,7 @@ class Calculations(str, Enum):
     AVG = 'avg'
     MAX = 'max'
     MIN = 'min'
+    SUM = 'sum'
 
 
 class StationStats(BaseModel):
@@ -61,6 +62,7 @@ class WeatherStat(BaseModel):
     avg: Union[float, None]
     min: Union[int, None]
     max: Union[int, None]
+    sum: Union[int, None]
 
 
 class WeatherStationYearOutputStat(BaseModel):

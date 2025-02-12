@@ -22,15 +22,15 @@ Input works but only when `bulk_upload` is disabled. If I worked on this long I 
 
 ### Problem 2 - Ingestion
 
-- [x] Write code to ingest the weather data from the raw text files supplied into your database, using the model you designed.
-- [ ] Check for duplicates: if your code is run twice, you should not end up with multiple rows with the same data in your database.
-- [x] Your code should also produce log output indicating start and end times and number of records ingested.
+- [x] [Write code to ingest the weather data from the raw text files supplied into your database, using the model you designed.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L41)
+- [ ] [Check for duplicates: if your code is run twice, you should not end up with multiple rows with the same data in your database.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L41)
+- [x] [Your code should also produce log output indicating start and end times and number of records ingested.](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L23)
 
 ### Problem 3 - Data Analysis
 
 #### For every year, for every weather station, calculate:
-- [x] Average maximum temperature (in degrees Celsius)
-- [x] Average minimum temperature (in degrees Celsius)
+- [x] [Average maximum temperature (in degrees Celsius)](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L23)
+- [x] [Average minimum temperature (in degrees Celsius)](https://github.com/winstonhoyle/corteva-code-challenge-template/blob/main/src/app/main.py#L23)
 - [x] Total accumulated precipitation (in centimeters)
 - [x] Ignore missing data when calculating these statistics.
 - [ ] Design a new data model to store the results.
