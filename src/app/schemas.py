@@ -1,6 +1,6 @@
 from enum import Enum
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, Union
 from typing_extensions import Annotated
 
 from pydantic import AfterValidator, BaseModel
@@ -46,8 +46,27 @@ class WeatherBase(BaseModel):
 
 
 class WeatherRecord(WeatherBase):
-    station_id: str
+    station_id: int
     date: datetime
     max_temp: Optional[Annotated[int, AfterValidator(missing_value)]] = None
     min_temp: Optional[Annotated[int, AfterValidator(missing_value)]] = None
     precipitation: Optional[Annotated[int, AfterValidator(missing_value)]] = None
+
+
+class WeatherRecordOutput(WeatherRecord, Station):
+    pass
+
+
+class WeatherStat(BaseModel):
+    avg: Union[float, None]
+    min: Union[int, None]
+    max: Union[int, None]
+
+
+class WeatherStationYearOutputStat(BaseModel):
+    weather_stat: WeatherStat
+    year: Union[int, None]
+
+
+class WeatherStationOutputStat(WeatherStationYearOutputStat, Station):
+    pass

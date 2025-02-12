@@ -1,5 +1,18 @@
 # Code Challenge Template
 
+#### Challengee:
+Winston Hoyle
+
+#### Time Spent
+~2 hours
+
+#### Comments
+Input works but only when `bulk_upload` is disabled. If I worked on this long I would fix bulk upload with new files. I would also implement storing results and unit tests. I only give myself ~2 hours per challenge. I have other code that is _production_, including an account I post daily maps:
+* [VineMapper](https://github.com/winstonhoyle/VineMapper)
+* [Mapping-WMATA-Fares](https://github.com/winstonhoyle/Mapping-WMATA-Fares) [http://wmatafares.com/](http://wmatafares.com/)
+* [Sample-CRUD-app](https://github.com/winstonhoyle/Sample-CRUD-app)
+
+
 ## Challenge Checklist:
 
 ### Problem 1 - Data Modeling
@@ -21,19 +34,19 @@
 - [x] Total accumulated precipitation (in centimeters)
 - [x] Ignore missing data when calculating these statistics.
 - [ ] Design a new data model to store the results.
-- [ ] Use NULL for statistics that cannot be calculated.
-- [ ] Your answer should include the new model definition as well as the code used to calculate the new values and store them in the database.
+- [x] Use NULL for statistics that cannot be calculated.
+- [x] Your answer should include the new model definition as well as the code used to calculate the new values and store them in the database.
 
 ### Problem 4 - REST API
 
 - [x] Choose a web framework (e.g. Flask, Django REST Framework). Create a REST API with the following GET endpoints
 #### Create a REST API with the following GET endpoints:
-- [ ] /api/weather
-- [ ] /api/weather/stats
-- [ ] Both endpoints should return a JSON-formatted response with a representation of the ingested/calculated data in your database.
-- [ ] Allow clients to filter the response by date and station ID (where present) using the query string. Data should be paginated.
+- [x] /api/weather
+- [x] /api/weather/stats
+- [x] Both endpoints should return a JSON-formatted response with a representation of the ingested/calculated data in your database.
+- [x] Allow clients to filter the response by date and station ID (where present) using the query string. Data should be paginated.
 - [x] Include a Swagger/OpenAPI endpoint that provides automatic documentation of your API.
-- [ ] ~~Your answer should include all files necessary to run your API locally, along with any unit tests.~~
+- [ ] Your answer should include all files necessary to run your API locally, along with any unit tests.
 
 ### Extra Credit - Deployment
-- [ ] ~~(Optional.) Assume you are asked to get your code running in the cloud using AWS. What tools and AWS services would you use to deploy the API, database, and a scheduled version of your data ingestion code? Write up a description of your approach.~~
+- [ ] (Optional.) Assume you are asked to get your code running in the cloud using AWS. What tools and AWS services would you use to deploy the API, database, and a scheduled version of your data ingestion code? Write up a description of your approach.

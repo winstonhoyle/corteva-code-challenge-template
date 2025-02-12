@@ -2,12 +2,14 @@ import collections
 from datetime import datetime
 import logging
 import os
-from typing import Optional
+from typing import Optional, List, Annotated
 
 from fastapi import Depends, FastAPI, UploadFile
-from fastapi_pagination import add_pagination, paginate
+from fastapi_pagination import add_pagination, Params, Page, paginate
 import pandas as pd
 from sqlalchemy.orm import Session
+
+# from fastapi_pagination.ext.sqlalchemy import paginate
 
 from . import schemas, models, crud
 from .database import SessionLocal, engine
@@ -34,6 +36,7 @@ def get_db():
         db.close()
 
 
+## Bulk upload on start up
 @app.on_event('startup')
 def bulk_upload():
 
@@ -43,7 +46,8 @@ def bulk_upload():
         # Get all text files
         txt_files = os.listdir('wx_data')
         dfs = []
-        station_normalization = {}
+        station_models = []
+        station_models_ref_dict = {}
         for i, txt_file in enumerate(txt_files):
             txt_file_path = os.path.join('wx_data', txt_file)
             df = pd.read_csv(
@@ -51,15 +55,14 @@ def bulk_upload():
                 sep='\t',
                 names=['date', 'max_temp', 'min_temp', 'precipitation'],
             )
-            df['station_id'] = txt_file.split('.')[0]
-            station_normalization[txt_file.split('.')[0]] = i
+            station_name = txt_file.split('.')[0]
+            df['station_id'] = i
+            station_models_ref_dict[station_name] = i
+            station = models.Station(station_id=i, station_name=station_name)
+            station_models.append(station)
             dfs.append(df)
 
         # Add stations table
-        station_models = [
-            models.Station(station_id=station_id, station_name=station_name)
-            for station_name, station_id in station_normalization.items()
-        ]
         db.add_all(station_models)
         db.commit()
 
@@ -69,7 +72,7 @@ def bulk_upload():
         df = pd.concat(dfs, ignore_index=True)
 
         # Format
-        df['station_id'].str.split('USC').str[1].astype(int)
+        df['station_id'] = df['station_id'].astype(int)
         df['max_temp'] = df['max_temp'].astype(int)
         df['min_temp'] = df['min_temp'].astype(int)
         df['precipitation'] = df['precipitation'].astype(int)
@@ -98,50 +101,162 @@ def bulk_upload():
         logger.info(f'Database initialized, {len(df)} Records inputted into database')
 
 
-@app.get('/weather', description='Get Weather data')
-async def get_weather_records(
-    station_id: str = None, year: int = None, db: Session = Depends(get_db),
-):
-    if station_id:
-        weather_records = crud.get_all_weather_by_id(db=db, station_id=station_id)
+@app.get('/station', description='Get Station ID', response_model=schemas.Station)
+async def get_station_id(station_name: str = None, db: Session = Depends(get_db)):
+    station_id = crud.get_station_id(db=db, station_name=station_name)
+    station = crud.get_station(db=db, station_id=station_id)
+    if station != None:
+        return schemas.Station(station_id=station.station_id, station_name=station_name)
+    else:
+        logger.error(f'No station found: {station_name}')
+        return
 
-    if year:
+
+@app.get(
+    '/weather',
+    description='Get Weather data',
+    response_model=Page[schemas.WeatherRecordOutput],
+)
+async def get_weather_records(
+    station_name: str = None, year: int = None, db: Session = Depends(get_db),
+):
+    if station_name and not year:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            weather_records = crud.get_all_weather_by_id(db=db, station_id=station_id)
+        else:
+            logger.error(f'No station found: {station_name}')
+            return paginate([])
+
+    if year and not station_name:
         weather_records = crud.get_all_weather_by_year(db=db, year=year)
 
-    ## TODO
+    if station_name and year:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            weather_records = crud.get_all_weather_by_year_and_id(
+                db=db, station_id=station_id, year=year
+            )
+        else:
+            logger.error(f'No station found: {station_name}')
+            return paginate([])
+
     if weather_records:
         return paginate(weather_records)
     else:
-        return {'result': 'no result'}
+        return paginate([])
+
+
+@app.get('/weather/stats/year', response_model=schemas.WeatherStationYearOutputStat)
+async def get_weather_stat_year(
+    attribute: Optional[schemas.QueryableAttributes] = None,
+    year: int = None,
+    db: Session = Depends(get_db),
+):
+    weather_stat = crud.calculate_all_attributes_by_year(db=db, year=year, attribute=attribute)
+    weather_output_stat = schemas.WeatherStationYearOutputStat(
+        weather_stat=weather_stat, year=year
+    )
+    return weather_output_stat
+
+
+@app.get('/weather/stats/station')
+async def get_weather_station_stat(
+    station_name: str,
+    attribute: Optional[schemas.QueryableAttributes] = None,
+    year: int = None,
+    db: Session = Depends(get_db),
+):
+
+    if station_name and not year:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            station = crud.get_station(db=db, station_id=station_id)
+            weather_stat = crud.calculate_all_attributes_id(
+                db=db, station_id=station_id, attribute=attribute
+            )
+            weather_output_stat = schemas.WeatherStationOutputStat(
+                weather_stat=weather_stat,
+                station_id=station.station_id,
+                station_name=station.station_name,
+                year=None,
+            )
+            return weather_output_stat.dict(exclude_none=True)
+        else:
+            logger.error(f'No station found: {station_name}')
+            return {'error': 'no station found'}
+
+    if station_name and year:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            station = crud.get_station(db=db, station_id=station_id)
+            weather_stat = crud.calculate_all_attributes_by_year_and_id(
+                db=db, year=year, station_id=station_id, attribute=attribute
+            )
+            weather_output_stat = schemas.WeatherStationYearOutputStat(
+                weather_stat=weather_stat,
+                station_id=station.station_id,
+                station_name=station.station_name,
+                year=year,
+            )
+            return weather_output_stat.dict(exclude_none=True)
+        else:
+            logger.error(f'No station found: {station_name}')
+            return {'error': 'no station found'}
 
 
 @app.get('/weather/stats', description='Get Stats')
 async def get_stats(
     calculation: Optional[schemas.Calculations] = None,
     attribute: Optional[schemas.QueryableAttributes] = None,
-    station_id: str = None,
+    station_name: str = None,
     year: int = None,
     db: Session = Depends(get_db),
 ):
 
-    if station_id:
-        stat_result = crud.calculate_attribute_weather_by_id(
-            db=db, calculation=calculation, attribute=attribute, station_id=station_id
-        )
+    if station_name and not year:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            if calculation == schemas.Calculations.ALL:
+                stat_result = crud.calculate_all_attributes_id(
+                    db=db, attribute=attribute, station_id=station_id
+                )
+            else:
+                stat_result = crud.calculate_attribute_weather_by_id(
+                    db=db, calculation=calculation, attribute=attribute, station_id=station_id
+                )
+        else:
+            logger.error(f'No station found: {station_name}')
+            return {'error': 'no station found'}
 
-    if year:
-        stat_result = crud.calculate_attribute_weather_by_year(
-            db=db, calculation=calculation, attribute=attribute, year=year,
-        )
+    if year and not station_name:
+        if calculation == schemas.Calculations.ALL:
+            stat_result = crud.calculate_all_attributes_by_year(
+                db=db, attribute=attribute, year=year
+            )
+        else:
+            stat_result = crud.calculate_attribute_weather_by_year(
+                db=db, calculation=calculation, attribute=attribute, year=year,
+            )
 
-    if year and station_id:
-        stat_result = crud.calculate_attribute_weather_by_year_and_id(
-            db=db,
-            calculation=calculation,
-            attribute=attribute,
-            year=year,
-            station_id=station_id,
-        )
+    if year and station_name:
+        station_id = crud.get_station_id(db=db, station_name=station_name)
+        if station_id != None:
+            if calculation == schemas.Calculations.ALL:
+                stat_result = crud.calculate_all_attributes_by_year_and_id(
+                    db=db, attribute=attribute, year=year, station_id=station_id
+                )
+            else:
+                stat_result = crud.calculate_attribute_weather_by_year_and_id(
+                    db=db,
+                    calculation=calculation,
+                    attribute=attribute,
+                    year=year,
+                    station_id=station_id,
+                )
+        else:
+            logger.error(f'No station found: {station_name}')
+            return {'error': 'no station found'}
 
     if stat_result:
         return {'func': attribute.lower(), 'calculation': calculation, 'result': stat_result}
